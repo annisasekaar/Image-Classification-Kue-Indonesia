@@ -1,8 +1,5 @@
 import React, { Component } from 'react';
 import * as tf from '@tensorflow/tfjs';
-import axios from 'axios';
-import logo from './logo.svg';
-import img from './dadargulung.jpg';
 
 import './App.css';
 
@@ -13,23 +10,23 @@ class App extends Component {
           // Initially, no file is selected
           selectedFile: null,
           imagePreviewUrl: null,
+          pred: "",
         }
-        this.handleChange = this.handleChange.bind(this)
+        //this.prediction = null;
+        this.handleChange = this.handleChange.bind(this);
+        this.load_Model = this.load_Model.bind(this);
       };
 
 
       // Load model tf.js
-
       load_Model = async () => {
-        // '/tfjs_model/model.json'
+
+        const label = ['kue dadar gulung', 'kue kastengel', 'kue klepon', 'kue lapis', 'kue lumpur', 'kue putri salju', 'kue risoles', 'kue serabi'];
         let model_path = './tfjs_model/model.json'
         console.log('loading model .................');
 
         const model_tfjs = await tf.loadLayersModel(model_path);
         //load model
-        this.setState({
-          model : model_tfjs,
-        })
         console.log(model_tfjs.summary());
 
         const IMAGE_SIZE = 150;
@@ -48,56 +45,15 @@ class App extends Component {
         });
 
         const classes = await logits.data();
-        console.log(classes);
-      };
-
-      predict_model = async () => {
-        const IMAGE_SIZE = 150;
-
-        const logits = tf.tidy(() => {
-          const normalizationConstant = 1.0 / 255.0;
-          let img = tf.browser.fromPixels(this.photoRef, 1)
-                      .resizeNearestNeighbor([IMAGE_SIZE, IMAGE_SIZE], false)
-                      .expandDims(0)
-                      .toFloat()
-                      .mul(normalizationConstant)
-
-          return this.state.model.predict(img);
+        const prediction = await label[classes.indexOf(Math.max(...classes))];
+        this.setState({
+          pred: prediction
         });
+        //console.log(classes.indexOf(Math.max(...classes)));
+        //console.log(label[classes.indexOf(Math.max(...classes))]);
+        console.log(this.state.pred);
+
       };
-
-
-
-      // modelLoad = () => {
-      //   if (this.state.selectedFile) {
-      //
-      //     let offset = tf.scalar(255);
-      //     let example = tf.browser.fromPixels(this.photoRef)
-      //                                              .resizeNearestNeighbor([150,150])
-      //                                              .toFloat()
-      //     //                                         //.sub(offset)
-      //     //                                         //.div(offset)
-      //                                              .expandDims();  // for example
-      //
-      //     let model = tf.loadLayersModel('model.json', {});
-      //     return model.classify(example);
-      //     //model.summary();
-      //     // model.then(function (res) {
-      //     //       const example = tf.browser.fromPixels(this.photoRef)
-      //     //                                               .resizeNearestNeighbor([150,150])
-      //     //                                               .toFloat()
-      //     //                                               //.sub(offset)
-      //     //                                               //.div(offset)
-      //     //                                               .expandDims();  // for example
-      //     //       const prediction = res.predict(example);
-      //     //       console.log(prediction);
-      //     //   }, function (err) {
-      //     //       console.log(err);
-      //     //   });
-      //     // let prediction = model.predict(example).data();
-      //     // return prediction;
-      //   }
-      // };
 
       // On file select (from the pop up)
       handleChange = event => {
@@ -111,32 +67,16 @@ class App extends Component {
             imagePreviewUrl: reader.result
           });
         }
-
         reader.readAsDataURL(file)
-
-        // Update the state
-        // this.setState({
-        //   selectedFile: event.target.files[0]
-        // });
       };
 
-      // On file upload (click the upload button)
-      onFileUpload = () => {
-        // Create an object of formData
-        const formData = new FormData();
-        // Update the formData object
-        formData.append(
-          "myFile",
-          this.state.selectedFile,
-          this.state.selectedFile.name
-        );
-
-        // Details of the uploaded file
-        console.log(this.state.selectedFile);
-
-        // Request made to the backend api
-        // Send formData object
-        axios.post("api/uploadfile", formData);
+      dataPredict = () => {
+        if (this.state.pred) {
+          return (
+            <div>
+              <h2>{this.state.pred}</h2>
+            </div>
+          );}
       };
 
       // File content to be displayed after
@@ -145,61 +85,45 @@ class App extends Component {
         if (this.state.selectedFile) {
           return (
             <div>
-              <h2>File Details:</h2>
-              <img src={this.state.imagePreviewUrl} alt="preview_gambar" width="300" height="300" />
-              <p>File Name: {this.state.selectedFile.name}</p>
-              <p>File Type: {this.state.selectedFile.type}</p>
-              <p>
-                Last Modified:{" "}
-                {this.state.selectedFile.lastModifiedDate.toDateString()}
-              </p>
+              <h4>Image:</h4>
+              <img src={this.state.imagePreviewUrl} alt="preview_gambar" ref={(ref)=>{this.photoRef = ref}} width="300" height="300" />
             </div>
-          );
-        } else {
+          );} else {
           return (
-            <div><br />
-              <h4>Choose before Pressing the Upload button</h4>
+            <div>
+              <h5>Choose file before Pressing the Upload button</h5>
             </div>
-          );
-        }
+          );}
       };
 
   render () {
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <h1>HALOOOOOOOOOOOO</h1>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-
-        <div>
-
-            <img src={this.state.imagePreviewUrl} alt="gambar" ref={(ref)=>{this.photoRef = ref}} width="300" height="300" />
-            <h1>
-              GeeksforGeeks
-            </h1>
-            <div>
-                <button onClick={this.load_Model}> LOAD MODEL </button>
-                <input type="file" onChange={this.handleChange}  />
-                <button onClick={this.predict_model}>
-                  Upload!
-                </button>
-            </div>
+          <h1> Guessing Indonesian Traditional Snack </h1>
+          <div>
+            Insert a photo of one of these snacks, and I'll guess the name of the snack!
+            <h6>kue dadar gulung - kue kastengel - kue klepon - kue lapis - kue lumpur - kue putri salju - kue risoles - kue serabi</h6>
+          </div>
+          <img src={'./dessert_icon.png'} alt="logo" height="200" />
+          <div>
+            <input type="file" onChange={this.handleChange}  />
+          </div>
           {this.fileData()}
-        </div>
-
+          <div>
+            <button onClick={this.load_Model}> CHECK MY ANSWER </button> <br/>
+            {this.dataPredict()}
+          </div>
+        </header>
+          <div><br/>
+            Final Project Bangk!t Academy <br/>
+            Using EfficientNet Model for CNN Image Classification <br/>
+            By : Annisa Sekar A & Ilham Firdausi Putra <br/><br/>
+          </div>
+          Icons made by <a href="https://www.flaticon.com/authors/iconixar" title="iconixar">iconixar</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
       </div>
+
+
     );
   }
 }
