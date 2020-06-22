@@ -1,4 +1,4 @@
-# Image Classiifcation Kue Indonesia
+# Image Classifcation Kue Indonesia
 <p align="center"> <img src="resource/header.png" alt="Kue Indonesia" width="600"/> </p>   
   
 This repository contain our <a href="https://events.withgoogle.com/bangkit/">Bangk!t</a> final group assignment.  
