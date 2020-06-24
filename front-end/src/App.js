@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
 import * as tf from '@tensorflow/tfjs';
+import 'bootstrap/dist/css/bootstrap.css';
+// Put any other imports below so that CSS from your
+// components takes precedence over default styles.
 
 import './App.css';
 
-class App extends Component {
+class App extends React.Component {
       constructor(props){
         super(props);
         this.state = {
@@ -11,23 +14,54 @@ class App extends Component {
           selectedFile: null,
           imagePreviewUrl: null,
           pred: "",
+          model : null,
         }
         //this.prediction = null;
         this.handleChange = this.handleChange.bind(this);
-        this.load_Model = this.load_Model.bind(this);
+        this.modelPredict = this.modelPredict.bind(this);
+        this.modelReady = this.modelReady.bind(this);
+        //this.loadsBISIMILLAH = this.loadsBISIMILLAH.bind(this);
+      };
+
+      componentDidMount() {
+        let modelSementara = this.loadss();
+        modelSementara.then((res)=>{
+          this.setState({
+            model : res,
+          })
+        });
+      };
+
+      loadss() {
+        console.log('Loading data');
+        return tf.loadLayersModel('./tfjs_model/model.json');
+      };
+
+      modelReady = () => {
+        if (this.state.model) {
+          return (
+            <div>
+              <h3>MODEL READY</h3>
+            </div>
+          )} else {
+            return (
+            <div>
+              <h2>LOADING MODEL............</h2>
+            </div>
+          )}
       };
 
 
       // Load model tf.js
-      load_Model = async () => {
+      modelPredict = async () => {
 
         const label = ['kue dadar gulung', 'kue kastengel', 'kue klepon', 'kue lapis', 'kue lumpur', 'kue putri salju', 'kue risoles', 'kue serabi'];
-        let model_path = './tfjs_model/model.json'
-        console.log('loading model .................');
-
-        const model_tfjs = await tf.loadLayersModel(model_path);
-        //load model
-        console.log(model_tfjs.summary());
+        // let model_path = './tfjs_model/model.json';
+        // console.log('loading model .................');
+        //
+        // const model_tfjs = await tf.loadLayersModel(model_path);
+        // //load model
+        // console.log(model_tfjs.summary());
 
         const IMAGE_SIZE = 150;
 
@@ -39,9 +73,9 @@ class App extends Component {
                       .toFloat()
                       .mul(normalizationConstant)
 
-          console.log(model_tfjs.predict(img).print());
+          console.log(this.state.model.predict(img).print());
 
-          return model_tfjs.predict(img);
+          return this.state.model.predict(img);
         });
 
         const classes = await logits.data();
@@ -111,7 +145,8 @@ class App extends Component {
           </div>
           {this.fileData()}
           <div>
-            <button onClick={this.load_Model}> CHECK MY ANSWER </button> <br/>
+            {this.modelReady()}
+            <button onClick={this.modelPredict}> CHECK MY ANSWER </button> <br/>
             {this.dataPredict()}
           </div>
         </header>
