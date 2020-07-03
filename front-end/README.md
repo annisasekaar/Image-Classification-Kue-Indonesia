@@ -4,8 +4,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the front-end directory, you can run:
 
-#### npm install
+1. npm install
+Install all dependencies
 
-#### npm start
-
-#### npm run build
+2. npm start
+Start running this web page
